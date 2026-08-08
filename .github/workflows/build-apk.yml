@@ -1,0 +1,36 @@
+name: Build Hamara Notes APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract project
+        run: |
+          ZIP=$(find . -maxdepth 1 -name "*.zip" -print -quit)
+          mkdir project
+          unzip -q "$ZIP" -d project
+
+      - name: Build APK
+        run: |
+          ROOT=$(dirname "$(find project -name settings.gradle -o -name settings.gradle.kts | head -1)")
+          cd "$ROOT"
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HamaraNotes-APK
+          path: project/**/app/build/outputs/apk/debug/app-debug.apk
